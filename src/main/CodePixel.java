@@ -1,96 +1,75 @@
 package main;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.ListIterator;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 
 
 public class CodePixel extends JFrame {
-
-	static int frameSize = 500;
-	static int pixelSize = 10;
-	static int lifetimeLength = 10;
-	static boolean shouldRefreshInstantly = true;
-	
-	boolean isFirstUpdate = true;
-	Pixel singleToRefresh;
 	
 	public CodePixel(String string) {
 		super (string);
 	}
-
+	
+	CodePixelPanel cpp;
+	static int frameSize = 1500;
+	static int pixelSize = 5;
+	static int lifetimeLength = 8;
+	static boolean shouldRefreshInstantly = true;
+	
 	public void prepareGUI () {
+		cpp = new CodePixelPanel (this);
+		this.add(cpp);
 		setSize (frameSize, frameSize);
 		setResizable (false);
-		setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE);
 	}
 	
-	@Override
-	public void paintComponents (Graphics g) {
-		if (isFirstUpdate) {
-			g.setColor(Color.black);
-			g.fillRect (0, 0, frameSize, frameSize);
-		}
-		if (shouldRefreshInstantly) {
-			paintPixel (g, singleToRefresh);
-			singleToRefresh = null;
-		} else {
-			for (Pixel p : pixels) {
-				paintPixel (g, p);
+	public static synchronized void updatePixels (CodePixel c) throws InterruptedException {
+		ListIterator<Pixel> it = c.cpp.pixels.listIterator();
+		while (it.hasNext()) {
+			Pixel p = it.next();
+			if (p.remainingLifetime > 0) {
+			p.enact(c, it);
+			if (c.shouldRefreshInstantly) {
+				c.cpp.singleToRefresh  = p;
+				//System.out.println("repaint " + ((p.x * c.pixelSize) + 250) + ", " + ((p.y * c.pixelSize) + 250)  + ", " + c.pixelSize  + ", " +  c.pixelSize);
+				c.cpp.paintComponent(c.cpp.getGraphics().create());
+				//c.cpp.repaint((p.x * c.pixelSize) + 250, (p.y * c.pixelSize) + 250, c.pixelSize, c.pixelSize);
+			}
+			} else {
+				it.remove();
+				Graphics g = c.cpp.getGraphics().create();
+				g.setColor(Color.WHITE);
+				g.fillRect((p.x * pixelSize) + frameSize/2, (p.y * pixelSize) + frameSize/2, pixelSize, pixelSize);
 			}
 		}
+		//if (!c.shouldRefreshInstantly) c.cpp.repaint();
+		//Thread.sleep(10);
 	}
-	
-	public boolean pixelExists (int x, int y) {
-		for (Pixel p : pixels) {
-			if (p.x == x && p.y == y)
-				return true;
-		}
-		return false;
-	}
-	
-	public void paintPixel (Graphics g, Pixel p) {
-		if (p == null)
-			return;
-		int rgbNum = 255 - (int) ((p.remainingLifetime/lifetimeLength)*255.0);
-		  
-		g.setColor(new Color (rgbNum,rgbNum,rgbNum));
-		g.fillRect(p.x * pixelSize, p.y * pixelSize, pixelSize, pixelSize);
-	}
-	
-	public ArrayList<Pixel> pixels = new ArrayList<Pixel> ();
 	
 	public static void main(String[] args) {
 		CodePixel c = new CodePixel ("CodePixel");
 		c.prepareGUI();
-		Pixel starter = new Pixel (c.lifetimeLength, "brd", 250, 250);
-		c.pixels.add(starter);
-		Thread t = new Thread () {
-			public void run () {
-				while (true) {
-					try {
-						Pixel[] pixes = c.pixels.toArray(new Pixel[] {});
-						for (Pixel p : pixes) {
-							p.enact(c);
-							if (c.shouldRefreshInstantly)
-								c.singleToRefresh  = p;
-								c.repaint();
-						}
-						if (!c.shouldRefreshInstantly)
-							c.repaint();
-					} catch (ConcurrentModificationException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		};
-		t.start();
+		Pixel starter = new Pixel (c.lifetimeLength, "brd", 0, 0);
+		c.cpp.pixels.add(starter);
 		
 		c.setVisible (true);
+		while (true) {
+			try {
+				updatePixels (c);
+			} catch (ConcurrentModificationException | InterruptedException e) {
+				e.printStackTrace();
+				return;
+			}
+		}
 	}
 
 }
