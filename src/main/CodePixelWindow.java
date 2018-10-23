@@ -27,9 +27,10 @@ public class CodePixelWindow extends JFrame {
 	}
 	
 	CodePixelPanel cpp;
-	static int frameSize = 1500;
+	int frameSize = 1500;
 	int pixelSize = 5;
 	int lifetimeLength = 5;
+	int breedingAgeLimit = 2;
 	boolean shouldRefreshInstantly = true;
 	
 	public void prepareGUI () {
@@ -55,7 +56,7 @@ public class CodePixelWindow extends JFrame {
 				it.remove();
 				Graphics g = c.cpp.getGraphics().create();
 				g.setColor(Color.WHITE);
-				g.fillRect((p.x * c.pixelSize) + frameSize/2, (p.y * c.pixelSize) + frameSize/2, c.pixelSize, c.pixelSize);
+				g.fillRect((p.x * c.pixelSize) + c.frameSize/2, (p.y * c.pixelSize) + c.frameSize/2, c.pixelSize, c.pixelSize);
 			}
 		}
 		//if (!c.shouldRefreshInstantly) c.cpp.repaint();
@@ -64,15 +65,21 @@ public class CodePixelWindow extends JFrame {
 	
 	public static void main(String[] args) {
 		JTextField pxSizeField = new JTextField ("5");
-		JTextField lifeLengthField = new JTextField ("5");
-		JTextField codeField = new JTextField ("brd");
+		JTextField frameSizeField = new JTextField ("1000");
+		JTextField lifeLengthField = new JTextField ("80");
+		JTextField ageLimitField = new JTextField ("60");
+		JTextField codeField = new JTextField ("agecol evocol smrtbrd");
 		JCheckBox refreshInstant = new JCheckBox ("Refresh pixels instantly", true);
 		
 		final JComponent[] inputs = new JComponent[] {
+				new JLabel("Frame size"),
+		        frameSizeField,
 		        new JLabel("Pixel size"),
 		        pxSizeField,
 		        new JLabel("Lifetime length"),
 		        lifeLengthField,
+		        new JLabel("Breeding age limit"),
+		        ageLimitField,
 		        new JLabel("Starting pixel code"),
 		        codeField,
 		        refreshInstant
@@ -80,6 +87,8 @@ public class CodePixelWindow extends JFrame {
 		
 		int newPx;
 		int newLife;
+		int newAgeLimit;
+		int newFrameSize;
 		
 		while (true) {
 			int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
@@ -89,6 +98,8 @@ public class CodePixelWindow extends JFrame {
 			try {
 				newPx = Integer.parseInt(pxSizeField.getText());
 				newLife = Integer.parseInt(lifeLengthField.getText());
+				newAgeLimit = Integer.parseInt(ageLimitField.getText());
+				newFrameSize = Integer.parseInt(frameSizeField.getText());
 				break;
 			} catch (Exception e) {
 				
@@ -98,6 +109,8 @@ public class CodePixelWindow extends JFrame {
 		CodePixelWindow c = new CodePixelWindow ("CodePixel");
 		c.pixelSize = newPx;
 		c.lifetimeLength = newLife;
+		c.breedingAgeLimit = newAgeLimit;
+		c.frameSize = newFrameSize;
 		//c.shouldRefreshInstantly = refreshInstant.isSelected();
 		String code = codeField.getText().toString();
 		//code = "brd";
@@ -105,7 +118,7 @@ public class CodePixelWindow extends JFrame {
 		Pixel starter = new Pixel (c.lifetimeLength, code, 0, 0);
 		c.cpp.pixels.add(starter);
 		
-		Pixel starter2 = new Pixel (c.lifetimeLength, code, 100, 50);
+		Pixel starter2 = new Pixel (c.lifetimeLength, code, 150, 150);
 		c.cpp.pixels.add(starter2);
 		
 		c.setVisible (true);

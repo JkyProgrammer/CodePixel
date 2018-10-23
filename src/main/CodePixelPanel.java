@@ -53,15 +53,8 @@ public class CodePixelPanel extends JPanel {
 		//System.out.println(p);
 		if (p == null)
 			return;
-		int brightness = 255 - (int)((float)p.remainingLifetime/(float)parent.lifetimeLength*255.0);
-		//rgbNum = 100; 
-		
-		float[] hsb = new float[3];
-		Color.RGBtoHSB(brightness, brightness, brightness, hsb);
-		Color c = Color.getHSBColor(p.tint, hsb[1], hsb[2]);
-		//System.out.println(c);
-		Color cc = new Color (c.getRGB()); /*new Color (brightness, brightness, brightness);*/
-		g.setColor(cc);
+		 /*new Color (brightness, brightness, brightness);*/
+		g.setColor(p.color);
 		g.fillRect((p.x * parent.pixelSize) + parent.frameSize/2, (p.y * parent.pixelSize) + parent.frameSize/2, parent.pixelSize, parent.pixelSize);
 	}
 	
