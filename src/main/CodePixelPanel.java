@@ -49,6 +49,17 @@ public class CodePixelPanel extends JPanel {
 		return false;
 	}
 	
+	public int indexOf (int x, int y) {
+		int i = 0;
+		Pixel[] pixes = pixels.toArray(new Pixel[] {});
+		for (Pixel p : pixes) {
+			if (p.x == x && p.y == y)
+				return i;
+			i++;
+		}
+		return -1;
+	}
+	
 	public void paintPixel (Graphics g, Pixel p) {
 		//System.out.println(p);
 		if (p == null)

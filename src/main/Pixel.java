@@ -9,6 +9,7 @@ import java.util.Random;
 public class Pixel {
 	int remainingLifetime;
 	int ageStart;
+	int ageLimit;
 	int x;
 	int y;
 	
@@ -20,11 +21,12 @@ public class Pixel {
 		return "Pixel: " + x + ", " + y + ", " + remainingLifetime + ", " + code;
 	}
 	
-	public Pixel (int lifetime, String complexArgs, int xx, int yy) {
+	public Pixel (int lifetime, String complexArgs, int xx, int yy, int ageLim) {
 		remainingLifetime = lifetime;
 		ageStart = lifetime;
 		code = complexArgs;
 		color = new Color (100,100,100);
+		ageLimit = ageLim;
 		this.x = xx;
 		this.y = yy;
 	}
@@ -32,7 +34,7 @@ public class Pixel {
 	private void evaluate (String arg, CodePixelWindow cp, ListIterator<Pixel> li) {
 		Random r = new Random ();
 		if (arg.equals("smrtbrd")) {
-			if ((ageStart - remainingLifetime) <= cp.breedingAgeLimit) {
+			if ((ageStart - remainingLifetime) <= ageLimit) {
 				
 				int newX = (r.nextInt(3) - 1) + x;
 				int newY = (r.nextInt(3) - 1) + y;
@@ -40,7 +42,7 @@ public class Pixel {
 					return;
 				}
 				if (!cp.cpp.pixelExists(newX, newY)) {
-					Pixel newPixel = new Pixel (cp.lifetimeLength, code, newX, newY);
+					Pixel newPixel = new Pixel (ageStart, code, newX, newY, ageLimit);
 					newPixel.tint = this.tint;
 					if (r.nextInt (5000) == 0) {
 						newPixel.code = "leapbrd " + newPixel.code;
@@ -50,7 +52,7 @@ public class Pixel {
 				}
 			}
 		} else if (arg.equals("agecol")) {
-			int brightness = 255 - (int)((float)remainingLifetime/(float)cp.lifetimeLength*255.0);
+			int brightness = 255 - (int)((float)remainingLifetime/(float)ageStart*255.0);
 			//rgbNum = 100; 
 			
 			float[] hsb = new float[3];
@@ -92,7 +94,7 @@ public class Pixel {
 			targetY = this.y + distancey;
 			
 			if (!cp.cpp.pixelExists(targetX, targetY)) {
-				Pixel newPixel = new Pixel (cp.lifetimeLength, code, targetX, targetY);
+				Pixel newPixel = new Pixel (ageStart, code, targetX, targetY, ageLimit);
 				newPixel.tint = this.tint;
 				li.add(newPixel);
 				return;
