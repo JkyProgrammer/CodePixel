@@ -1,6 +1,5 @@
 package main;
 
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 
@@ -11,6 +10,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class OptionsPane extends JFrame {
+	private static final long serialVersionUID = 7884001862052877939L;
 	public JTextField lifeLengthField;
 	public JTextField ageLimitField;
 	public JTextField codeField;

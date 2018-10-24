@@ -1,7 +1,6 @@
 package main;
 
 import java.awt.Color;
-import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -9,23 +8,19 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 import java.util.ListIterator;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JToggleButton;
-
 
 
 public class CodePixelWindow extends JFrame {
 	
+	private static final long serialVersionUID = -8407839062091833852L;
 	public boolean hasStarted = false;
 	
 	public void addPixel (Point at) {

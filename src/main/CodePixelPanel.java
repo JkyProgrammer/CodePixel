@@ -6,9 +6,8 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
-import java.util.ListIterator;
-
 public class CodePixelPanel extends JPanel {	
+	private static final long serialVersionUID = -2170386884746336930L;
 	boolean isFirstUpdate = true;
 	Pixel singleToRefresh;
 	
