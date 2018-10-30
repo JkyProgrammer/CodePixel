@@ -180,9 +180,9 @@ public class CodePixelWindow extends JFrame {
 	public static void main(String[] args) {
 		JTextField pxSizeField = new JTextField ("5");
 		JTextField frameSizeField = new JTextField ("1000");
-		JTextField lifeLengthField = new JTextField ("80");
-		JTextField ageLimitField = new JTextField ("60");
-		JTextField codeField = new JTextField ("agecol evocol smrtbrd");
+		JTextField lifeLengthField = new JTextField ("40");
+		JTextField ageLimitField = new JTextField ("5");
+		JTextField codeField = new JTextField ("prsistnt agecol evocol smrtbrd");
 		JCheckBox refreshInstant = new JCheckBox ("Refresh pixels instantly", true);
 		
 		final JComponent[] inputs = new JComponent[] {

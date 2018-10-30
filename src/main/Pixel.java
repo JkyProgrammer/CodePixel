@@ -31,6 +31,16 @@ public class Pixel {
 		this.y = yy;
 	}
 	
+	private void newPixel (ListIterator<Pixel> li, int targetX, int targetY) {
+		Pixel newPixel = new Pixel (ageStart, code.replaceAll("prsistnt", ""), targetX, targetY, ageLimit);
+		Random r = new Random ();
+		if (r.nextInt (5000) == 0) {
+			newPixel.code = "leapbrd " + newPixel.code;
+		}
+		newPixel.tint = this.tint;
+		li.add(newPixel);
+	}
+	 
 	private void evaluate (String arg, CodePixelWindow cp, ListIterator<Pixel> li) {
 		Random r = new Random ();
 		if (arg.equals("smrtbrd")) {
@@ -42,12 +52,7 @@ public class Pixel {
 					return;
 				}
 				if (!cp.cpp.pixelExists(newX, newY)) {
-					Pixel newPixel = new Pixel (ageStart, code, newX, newY, ageLimit);
-					newPixel.tint = this.tint;
-					if (r.nextInt (5000) == 0) {
-						newPixel.code = "leapbrd " + newPixel.code;
-					}
-					li.add(newPixel);
+					newPixel (li, newX, newY);
 					return;
 				}
 			}
@@ -94,11 +99,20 @@ public class Pixel {
 			targetY = this.y + distancey;
 			
 			if (!cp.cpp.pixelExists(targetX, targetY)) {
-				Pixel newPixel = new Pixel (ageStart, code, targetX, targetY, ageLimit);
-				newPixel.tint = this.tint;
-				li.add(newPixel);
+				newPixel (li, targetX, targetY);
 				return;
 			}
+		} else if (arg.equals("homocidal")) {
+			// TODO: New cell code
+		} else if (arg.equals ("explsvkill")) {
+			// TODO: New cell code
+		} else if (arg.equals ("explsvbrd")) {
+			// TODO: New cell code
+		} else if (arg.equals ("msedistcol")) {
+			// TODO: New cell code
+		} else if (arg.equals ("prsistnt")) {
+			remainingLifetime++;
+			
 		}
 	}
 	
