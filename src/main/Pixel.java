@@ -77,7 +77,7 @@ public class Pixel {
 			}
 			float[] hsb = new float[3];
 			Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
-			Color c = Color.getHSBColor(tint, 0.5f, hsb[2]);
+			Color c = Color.getHSBColor(tint, 1.0f, hsb[2]);
 			color = new Color (c.getRGB());
 		} else if (arg.equals("leapbrd")) {
 			this.code = this.code.replaceAll("leapbrd", "");
