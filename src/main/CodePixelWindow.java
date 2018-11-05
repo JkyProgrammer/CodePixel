@@ -16,6 +16,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 
 public class CodePixelWindow extends JFrame {
@@ -65,7 +66,7 @@ public class CodePixelWindow extends JFrame {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (e.getButton() == MouseEvent.BUTTON1) {
+				if (SwingUtilities.isLeftMouseButton(e)) {
 					addPixel (new Point (e.getX(), e.getY()));
 				} else {
 					int x = (e.getX()-frameSize/2)/pixelSize;
@@ -102,7 +103,7 @@ public class CodePixelWindow extends JFrame {
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				if (e.getButton() == MouseEvent.BUTTON1) {
+				if (SwingUtilities.isLeftMouseButton(e)) {
 					addPixel (new Point (e.getX(), e.getY()));
 				} else {
 					int x = (e.getX()-frameSize/2)/pixelSize;
@@ -137,6 +138,17 @@ public class CodePixelWindow extends JFrame {
 	boolean mouseIsDown = false;
 	public ListIterator<Pixel> it;
 	public void updatePixels () throws InterruptedException {
+		Point[] indices = pixelsToRemove.toArray (new Point[] {});
+		pixelsToRemove.clear();
+		for (Point p : indices) {
+			if (p != null) {
+				int index = cpp.indexOf(p.x, p.y);
+				if (index > -1)
+					this.cpp.pixels.get(index).remainingLifetime = 0;
+			}
+		}
+		
+		
 		Pixel[] pixes = pixelsToAdd.toArray(new Pixel[] {});
 		pixelsToAdd.clear();
 		for (Pixel p : pixes) {
@@ -146,16 +158,6 @@ public class CodePixelWindow extends JFrame {
 					this.cpp.pixels.set(i, p);
 				else 
 					this.cpp.pixels.add(p);
-			}
-		}
-
-		Point[] indices = pixelsToRemove.toArray (new Point[] {});
-		pixelsToRemove.clear();
-		for (Point p : indices) {
-			if (p != null) {
-				int index = cpp.indexOf(p.x, p.y);
-				if (index > -1)
-					this.cpp.pixels.get(index).remainingLifetime = 0;
 			}
 		}
 

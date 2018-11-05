@@ -2,7 +2,11 @@ package main;
 
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -14,6 +18,8 @@ public class OptionsPane extends JFrame {
 	public JTextField lifeLengthField;
 	public JTextField ageLimitField;
 	public JTextField codeField;
+	
+	
 	
 	public OptionsPane (CodePixelWindow cp) {
 		super ("Options for New Pixels");
@@ -27,6 +33,21 @@ public class OptionsPane extends JFrame {
 		infoLabel.setLineWrap(true);
 		//infoLabel.setEditable(false);
 		
+		JButton clearButton = new JButton ("Clear (WARNING, KILLS ALL)");
+		clearButton.addActionListener(new ActionListener () {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cp.pixelsToRemove.clear();
+				//cp.cpp.pixels.clear();
+				Pixel[] pixes = cp.cpp.pixels.toArray(new Pixel[] {});
+				for (Pixel p : pixes) {
+					if (p != null)
+						cp.pixelsToRemove.add (new Point (p.x, p.y));
+				}
+				cp.pixelsToAdd.clear();
+			}
+		});
+		
 		final JComponent[] inputs = new JComponent[] {
 				infoLabel,
 		        new JLabel("Lifetime length"),
@@ -35,9 +56,10 @@ public class OptionsPane extends JFrame {
 		        ageLimitField,
 		        new JLabel("Pixel code"),
 		        codeField,
+		        clearButton
 		};
 		
-		this.setLayout(new GridLayout (7, 1));
+		this.setLayout(new GridLayout (8, 1));
 		for (JComponent c : inputs) {
 			this.add(c);
 		}
