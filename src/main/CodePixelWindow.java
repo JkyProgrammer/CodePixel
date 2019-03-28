@@ -33,7 +33,7 @@ public class CodePixelWindow extends JFrame {
 		Pixel newPixel = new Pixel (Integer.parseInt(optionsPane.lifeLengthField.getText()), optionsPane.codeField.getText(), x, y, Integer.parseInt(optionsPane.ageLimitField.getText()));
 		pixelsToAdd.add(newPixel);
 		//it.add(newPixel);
-		this.cpp.singleToRefresh  = newPixel;
+		this.cpp.singleToRefresh = newPixel;
 		this.cpp.paintComponent(this.cpp.getGraphics().create());
 	}
 
@@ -45,10 +45,10 @@ public class CodePixelWindow extends JFrame {
 	}
 
 	CodePixelPanel cpp;
-	int frameSize = 1500;
-	int pixelSize = 5;
-	int lifetimeLength = 5;
-	int breedingAgeLimit = 2;
+	int frameSize = 1000;
+	int pixelSize = 3;
+	int lifetimeLength = 40;
+	int breedingAgeLimit = 8;
 	boolean shouldRefreshInstantly = true;
 	public String startCode;
 
@@ -77,7 +77,9 @@ public class CodePixelWindow extends JFrame {
 
 					for (int b = topLeftY; b <= topLeftY + 4; b++) {
 						for (int a = topLeftX; a <= topLeftX + 4; a++) {
-							pixelsToRemove.add (new Point (a, b));
+							Point o = new Point (a, b);
+							pixelsToRemove.add (o);
+							pixelsToAdd.remove(o);
 						}
 					}
 
@@ -114,7 +116,9 @@ public class CodePixelWindow extends JFrame {
 
 					for (int b = topLeftY; b <= topLeftY + 4; b++) {
 						for (int a = topLeftX; a <= topLeftX + 4; a++) {
-							pixelsToRemove.add (new Point (a, b));
+							Point o = new Point (a, b);
+							pixelsToRemove.add (o);
+							pixelsToAdd.remove(o);
 						}
 					}
 
@@ -137,7 +141,7 @@ public class CodePixelWindow extends JFrame {
 	OptionsPane optionsPane;
 	boolean mouseIsDown = false;
 	public ListIterator<Pixel> it;
-	public void updatePixels () throws InterruptedException {
+	public void updatePixels () {
 		Point[] indices = pixelsToRemove.toArray (new Point[] {});
 		pixelsToRemove.clear();
 		for (Point p : indices) {
@@ -184,25 +188,25 @@ public class CodePixelWindow extends JFrame {
 	}
 
 	public static void main(String[] args) {
-		JTextField pxSizeField = new JTextField ("5");
+		JTextField pxSizeField = new JTextField ("3");
 		JTextField frameSizeField = new JTextField ("1000");
 		JTextField lifeLengthField = new JTextField ("40");
-		JTextField ageLimitField = new JTextField ("5");
-		JTextField codeField = new JTextField ("prsistnt agecol evocol smrtbrd");
-		JCheckBox refreshInstant = new JCheckBox ("Refresh pixels instantly", true);
+		JTextField ageLimitField = new JTextField ("8");
+		JTextField codeField = new JTextField ("agecol evocol smrtbrd");
+		//JCheckBox refreshInstant = new JCheckBox ("Refresh pixels instantly", true);
 
 		final JComponent[] inputs = new JComponent[] {
 				new JLabel("Frame size"),
 				frameSizeField,
 				new JLabel("Pixel size"),
 				pxSizeField,
-				new JLabel("Lifetime length"),
-				lifeLengthField,
-				new JLabel("Breeding age limit"),
-				ageLimitField,
-				new JLabel("Starting pixel code"),
-				codeField,
-				refreshInstant
+				//new JLabel("Lifetime length"),
+				//lifeLengthField,
+				//new JLabel("Breeding age limit"),
+				//ageLimitField,
+				//new JLabel("Starting pixel code"),
+				//codeField,
+				//refreshInstant
 		};		
 
 		int newPx;
@@ -217,8 +221,8 @@ public class CodePixelWindow extends JFrame {
 			}
 			try {
 				newPx = Integer.parseInt(pxSizeField.getText());
-				newLife = Integer.parseInt(lifeLengthField.getText());
-				newAgeLimit = Integer.parseInt(ageLimitField.getText());
+				//newLife = Integer.parseInt(lifeLengthField.getText());
+				//newAgeLimit = Integer.parseInt(ageLimitField.getText());
 				newFrameSize = Integer.parseInt(frameSizeField.getText());
 				break;
 			} catch (Exception e) {
@@ -228,12 +232,12 @@ public class CodePixelWindow extends JFrame {
 
 		CodePixelWindow c = new CodePixelWindow ("CodePixel");
 		c.pixelSize = newPx;
-		c.lifetimeLength = newLife;
-		c.breedingAgeLimit = newAgeLimit;
+		//c.lifetimeLength = newLife;
+		//c.breedingAgeLimit = newAgeLimit;
 		c.frameSize = newFrameSize;
 		String code = codeField.getText().toString();
 		c.startCode = code;
-		c.shouldRefreshInstantly = refreshInstant.isSelected();
+		c.shouldRefreshInstantly = true; //refreshInstant.isSelected();
 		c.prepareGUI();
 		//Pixel starter = new Pixel (c.lifetimeLength, code, 0, 0);
 		//c.cpp.pixels.add(starter);
@@ -243,12 +247,12 @@ public class CodePixelWindow extends JFrame {
 
 		c.setVisible (true);
 		while (true) {
-			try {
+			//try {
 				c.updatePixels ();
-			} catch (ConcurrentModificationException | InterruptedException e) {
-				e.printStackTrace();
-				//return;
-			}
+//			} catch (ConcurrentModificationException | InterruptedException e) {
+//				e.printStackTrace();
+//				//return;
+//			}
 		}
 	}
 

@@ -28,15 +28,6 @@ public class CodePixelPanel extends JPanel {
 		if (parent.shouldRefreshInstantly) {
 			paintPixel (g, singleToRefresh);
 			singleToRefresh = null;
-		} else {
-//			g.setColor(Color.black);
-//			g.fillRect (0, 0, parent.frameSize, parent.frameSize);
-//			isFirstUpdate = false;
-//			ListIterator<Pixel> it = pixels.listIterator();
-//			while (it.hasNext()) {
-//				Pixel p = it.next();
-//				paintPixel (g, p);
-//			}
 		}
 	}
 

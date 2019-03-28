@@ -34,7 +34,7 @@ public class Pixel {
 	private void newPixel (ListIterator<Pixel> li, int targetX, int targetY) {
 		Pixel newPixel = new Pixel (ageStart, code.replaceAll("prsistnt", ""), targetX, targetY, ageLimit);
 		Random r = new Random ();
-		if (r.nextInt (5000) == 0) {
+		if (r.nextInt (10000) == 0) {
 			newPixel.code = "leapbrd " + newPixel.code;
 		}
 		newPixel.tint = this.tint;
@@ -51,7 +51,9 @@ public class Pixel {
 				if (Math.abs(newX - x) + Math.abs(newY - y) > 1) {
 					return;
 				}
-				if (!cp.cpp.pixelExists(newX, newY)) {
+				int lim = cp.frameSize/(2 * cp.pixelSize);
+				
+				if (!cp.cpp.pixelExists(newX, newY) && !(newX > lim || newX < -lim) && !(newY > lim || newY < -lim)) {
 					newPixel (li, newX, newY);
 					return;
 				}
@@ -67,12 +69,11 @@ public class Pixel {
 			color = new Color (c.getRGB());
 		} else if (arg.equals("evocol")) {
 			if (r.nextInt(20) == 4) {
-				int b = r.nextInt(100);
-				b -= 50;
-				if (b < 0) {
-					tint -= (0.001 * b);
-				} else {
-					tint += (0.001 * b);
+				int b = r.nextInt(150);
+				if (b < 50) {
+					tint -= (0.01);
+				} else if (b > 100) {
+					tint += (0.01);
 				}
 			}
 			float[] hsb = new float[3];
@@ -97,8 +98,8 @@ public class Pixel {
 			
 			targetX = this.x + distancex;
 			targetY = this.y + distancey;
-			
-			if (!cp.cpp.pixelExists(targetX, targetY)) {
+			int lim = cp.frameSize/(2 * cp.pixelSize);
+			if (!cp.cpp.pixelExists(targetX, targetY) && !(targetX > lim || targetX < -lim) && !(targetY > lim || targetY < -lim)) {
 				newPixel (li, targetX, targetY);
 				return;
 			}
