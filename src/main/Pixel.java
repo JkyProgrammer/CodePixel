@@ -119,9 +119,11 @@ public class Pixel {
 	
 	public void enact (CodePixelWindow cp, ListIterator<Pixel> li) {
 		remainingLifetime--;
-		ArrayList<String> args = new ArrayList<String> (Arrays.asList(code.split(" ")));
-		for (String arg : args) {
-			evaluate (arg, cp, li);
+		if (remainingLifetime > 0) {
+			ArrayList<String> args = new ArrayList<String> (Arrays.asList(code.split(" ")));
+			for (String arg : args) {
+				evaluate (arg, cp, li);
+			}
 		}
 	} 
 }

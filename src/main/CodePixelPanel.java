@@ -51,10 +51,8 @@ public class CodePixelPanel extends JPanel {
 	}
 	
 	public void paintPixel (Graphics g, Pixel p) {
-		//System.out.println(p);
 		if (p == null)
 			return;
-		 /*new Color (brightness, brightness, brightness);*/
 		g.setColor(p.color);
 		g.fillRect((p.x * parent.pixelSize) + parent.frameSize/2, (p.y * parent.pixelSize) + parent.frameSize/2, parent.pixelSize, parent.pixelSize);
 	}
