@@ -157,7 +157,8 @@ public class CodePixelWindow extends JFrame {
 		Point[] indices = pixelsToRemove.toArray (new Point[] {});
 		pixelsToRemove.clear();
 		for (Point p : indices) {
-			cpp.pixels.get(p).remainingLifetime = 0;
+			Pixel pp = cpp.pixels.get(p);
+			if (pp != null) pp.remainingLifetime = 0;
 		}
 		
 		if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for removal.");
