@@ -50,9 +50,7 @@ public class OptionsPane extends JFrame {
 				while (cp.isMidUpdate) {System.out.println("Delay due to updating.");};
 				cp.pixelsToRemove.clear();
 				cp.pixelsToAdd.clear();
-				while (cp.cpp.pixels.size() > 0) {
-					cp.cpp.pixels.remove(0);
-				}
+				cp.cpp.pixels.clear();
 				cp.allowsPixelEnactment = true;
 				cp.cpp.isFirstUpdate = true;
 				cp.cpp.repaint();
