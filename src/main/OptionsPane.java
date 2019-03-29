@@ -29,7 +29,7 @@ public class OptionsPane extends JFrame {
 	public JCheckBox enableLeapBrdBox;
 	
 	public OptionsPane (CodePixelWindow cp) {
-		super ("Options for New Pixels");
+		super ("Options for New Pixels Pane");
 		
 		// Initialise all the fields
 		lifeLengthField = new JTextField (Integer.toString((CodePixelWindow.lifetimeLength)));

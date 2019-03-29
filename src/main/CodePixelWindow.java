@@ -59,6 +59,7 @@ public class CodePixelWindow extends JFrame {
 	boolean allowsPixelEnactment = true;				// Defines whether or not the pixelUpdate method should be called
 	boolean isMidUpdate = false;						// Defines whether or not the pixelUpdate method is currently enacting/drawing pixels
 	
+	
 	// Called to set up the GUI
 	public void prepareGUI () {
 		// Create a new CodePixelPanel
@@ -71,7 +72,7 @@ public class CodePixelWindow extends JFrame {
 		this.addMouseListener(new MouseListener () {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				allowsPixelEnactment = true;
+				//allowsPixelEnactment = true;
 				if (SwingUtilities.isLeftMouseButton(e)) {
 					// Add a new pixel under the mouse
 					addPixel (new Point (e.getX(), e.getY()));
@@ -114,7 +115,7 @@ public class CodePixelWindow extends JFrame {
 		this.addMouseMotionListener(new MouseMotionListener () {
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				allowsPixelEnactment = true;
+				//allowsPixelEnactment = true;
 				if (SwingUtilities.isLeftMouseButton(e)) {
 					// Add a new pixel under the mouse
 					addPixel (new Point (e.getX(), e.getY()));
@@ -149,9 +150,12 @@ public class CodePixelWindow extends JFrame {
 		// Set up and show the options pane
 		optionsPane = new OptionsPane (this);
 		optionsPane.setVisible (true);
+		
+		timePane = new TimePane (this);
 	}
 
 	OptionsPane optionsPane;
+	TimePane timePane;
 	
 	// Runs a complete update of all listed pixels
 	public void updatePixels () {
@@ -225,7 +229,8 @@ public class CodePixelWindow extends JFrame {
 			if (allowsPixelEnactment) { // Run a pixel update only if we're allowed to here
 				updatePixels ();
 			} else {
-				// System.out.println("Pixel update unavailable.");
+				System.out.println("Waiting...");
+				
 			}
 		}
 	}
