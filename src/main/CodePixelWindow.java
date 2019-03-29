@@ -7,12 +7,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.ListIterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -24,20 +22,24 @@ import javax.swing.SwingUtilities;
 public class CodePixelWindow extends JFrame {
 
 	private static final long serialVersionUID = -8407839062091833852L;
-	public boolean hasStarted = false;
-
+	
+	// Handle adding a new pixel at a point, with characteristics as defined in the options pane
 	public void addPixel (Point at) {
+		// Work out the internal position of the new pixel
 		int x = (at.x-this.frameSize/2)/this.pixelSize;
 		int y = (at.y-this.frameSize/2)/this.pixelSize;
-		y -= 5;
+		y -= 10;
 
 
+		// Initialise the pixel based on the characteristics defined in the options pane
 		Pixel newPixel = new Pixel (Integer.parseInt(optionsPane.lifeLengthField.getText()), optionsPane.codeField.getText(), x, y, Integer.parseInt(optionsPane.ageLimitField.getText()));
-		//newPixel.color = Color.getHSBColor((float)((float)(optionsPane.colourSlider.getValue())/(float)255), 1f, 0.5f);
 		newPixel.tint = (float)((float)(optionsPane.colourSlider.getValue())/(float)255);
 		if (!optionsPane.enableLeapBrdBox.isSelected()) newPixel.allowsLeapBreedGene = false;
+		
+		// Queue the pixel to be added
 		pixelsToAdd.add(newPixel);
-		//it.add(newPixel);
+		
+		// Paint the pixel
 		this.cpp.singleToRefresh = newPixel;
 		this.cpp.paintComponent(this.cpp.getGraphics().create());
 	}
@@ -52,39 +54,41 @@ public class CodePixelWindow extends JFrame {
 	CodePixelPanel cpp;
 	int frameSize = 1000;
 	int pixelSize = 3;
-	int lifetimeLength = 40;
-	int breedingAgeLimit = 8;
-	boolean shouldRefreshInstantly = true;
-	public String startCode;
-	boolean allowsPixelEnactment = true;
-	boolean isMidUpdate = false;
 	
-	boolean verboseTimerLogging = false;
+	static int lifetimeLength = 40; 					// The default lifetime length for the options pane
+	static int breedingAgeLimit = 8;					// The default breeding age limit for the options pane
+	static String startCode = "agecol evocol smrtbrd";	// The default starting code for the options pane
+	static boolean verboseTimerLogging = false;			// Determines whether or not to display operation timing data on the console
+
+	boolean allowsPixelEnactment = true;				// Defines whether or not the pixelUpdate method should be called
+	boolean isMidUpdate = false;						// Defines whether or not the pixelUpdate method is currently enacting/drawing pixels
 	
+	// Called to set up the GUI
 	public void prepareGUI () {
+		// Create a new CodePixelPanel
 		cpp = new CodePixelPanel (this);
 		this.add(cpp);
+		// Prepare the frame
 		setSize (frameSize, frameSize);
 		setResizable (false);
+		// Add a sensor to detect clicking events
 		this.addMouseListener(new MouseListener () {
-
 			@Override
 			public void mouseClicked(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
 				allowsPixelEnactment = true;
 				if (SwingUtilities.isLeftMouseButton(e)) {
+					// Add a new pixel under the mouse
 					addPixel (new Point (e.getX(), e.getY()));
 				} else {
+					// Remove the pixels under the mouse
 					int x = (e.getX()-frameSize/2)/pixelSize;
 					int y = (e.getY()-frameSize/2)/pixelSize;
-					y -= 5;
-					int topLeftX = (e.getX()-frameSize/2)/pixelSize - 2;
-					int topLeftY = (e.getY()-frameSize/2)/pixelSize - 7;
+					y -= 10;
+					
+					int topLeftX = x - 2;
+					int topLeftY = y - 2;
 
+					// Iterate over the pixels and queue them to be removed
 					for (int b = topLeftY; b <= topLeftY + 4; b++) {
 						for (int a = topLeftX; a <= topLeftX + 4; a++) {
 							Point o = new Point (a, b);
@@ -92,7 +96,8 @@ public class CodePixelWindow extends JFrame {
 							pixelsToAdd.remove(o);
 						}
 					}
-
+					
+					// Draw over the pixels that are being removed
 					Graphics g = cpp.getGraphics().create();
 					g.setColor(Color.WHITE);
 					g.fillRect(((x-2) * pixelSize) + frameSize/2, ((y-2) * pixelSize) + frameSize/2, pixelSize * 5, pixelSize * 5);
@@ -100,31 +105,32 @@ public class CodePixelWindow extends JFrame {
 			}
 
 			@Override
-			public void mouseReleased(MouseEvent e) {
-			}
-
+			public void mousePressed(MouseEvent e) {}
+			@Override
+			public void mouseReleased(MouseEvent e) {}
 			@Override
 			public void mouseEntered(MouseEvent e) {}
-
 			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-
+			public void mouseExited(MouseEvent e) {}
 		});
+		
+		// Add a listener to detect mouse drag events
 		this.addMouseMotionListener(new MouseMotionListener () {
-
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				allowsPixelEnactment = true;
 				if (SwingUtilities.isLeftMouseButton(e)) {
+					// Add a new pixel under the mouse
 					addPixel (new Point (e.getX(), e.getY()));
 				} else {
+					// Remove pixels under the mouse
 					int x = (e.getX()-frameSize/2)/pixelSize;
 					int y = (e.getY()-frameSize/2)/pixelSize;
-					y -= 5;
-					int topLeftX = (e.getX()-frameSize/2)/pixelSize - 2;
-					int topLeftY = (e.getY()-frameSize/2)/pixelSize - 7;
+					y -= 10;
+					int topLeftX = x - 2;
+					int topLeftY = y - 2;
 
+					// Iterate over the pixels and queue them to be removed
 					for (int b = topLeftY; b <= topLeftY + 4; b++) {
 						for (int a = topLeftX; a <= topLeftX + 4; a++) {
 							Point o = new Point (a, b);
@@ -132,7 +138,8 @@ public class CodePixelWindow extends JFrame {
 							pixelsToAdd.remove(o);
 						}
 					}
-
+					
+					// Draw over the pixels being removed
 					Graphics g = cpp.getGraphics().create();
 					g.setColor(Color.WHITE);
 					g.fillRect(((x-2) * pixelSize) + frameSize/2, ((y-2) * pixelSize) + frameSize/2, pixelSize * 5, pixelSize * 5);
@@ -140,30 +147,31 @@ public class CodePixelWindow extends JFrame {
 			}
 
 			@Override
-			public void mouseMoved(MouseEvent e) {
-			}
-
+			public void mouseMoved(MouseEvent e) {}
 		});
 
+		// Set up and show the options pane
 		optionsPane = new OptionsPane (this);
 		optionsPane.setVisible (true);
 	}
 
 	OptionsPane optionsPane;
-	boolean mouseIsDown = false;
-	public ListIterator<Pixel> it;
+	
+	// Runs a complete update of all listed pixels
 	public void updatePixels () {
-		long start = System.nanoTime();
+		long start = System.nanoTime(); // Start the timer
+		
+		// Cache the pixelsToRemove array, clear out the pixelsToRemove array, then remove the pixels that need to be removed
 		Point[] indices = pixelsToRemove.toArray (new Point[] {});
 		pixelsToRemove.clear();
 		for (Point p : indices) {
-			Pixel pp = cpp.pixels.get(p);
-			if (pp != null) pp.remainingLifetime = 0;
+			cpp.pixels.remove (p);
 		}
 		
 		if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for removal.");
 		start = System.nanoTime();
 		
+		// Cache the pixelsToAdd array, clear out the pixelsToAdd array, then add the pixels that need to be added
 		Pixel[] pixes = pixelsToAdd.toArray(new Pixel[] {});
 		pixelsToAdd.clear();
 		for (Pixel p : pixes) {
@@ -175,17 +183,20 @@ public class CodePixelWindow extends JFrame {
 		if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for adding.");
 		start = System.nanoTime();
 
-		
+		// Tell other threads that the pixels array is now in use
 		isMidUpdate = true;
-		//it = this.cpp.pixels.listIterator();
+		// Cache the current list of pixels
 		Pixel[] iteratingPixels = cpp.pixels.values().toArray(new Pixel[0]);
+		// Iterate over the cached list of pixels
 		for (Pixel p : iteratingPixels) {
-			if (p.remainingLifetime > 0) {
+			if (p.remainingLifetime > 0) { // Check if the pixel has any time left
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for setup.");
 				start = System.nanoTime();
+				// Enact the pixel
 				enact(p);
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for enactment.");
 				start = System.nanoTime();
+				// Paint the pixel
 				cpp.singleToRefresh  = p;
 				cpp.paintComponent(cpp.getGraphics().create());
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for painting.");
@@ -193,8 +204,9 @@ public class CodePixelWindow extends JFrame {
 			} else {
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for setup.");
 				start = System.nanoTime();
-				//it.remove();
+				// Remove the dead pixel from the pixels array
 				cpp.pixels.remove(new Point (p.x, p.y));
+				// Paint over it
 				Graphics g = this.cpp.getGraphics().create();
 				g.setColor(Color.WHITE);
 				g.fillRect((p.x * this.pixelSize) + this.frameSize/2, (p.y * this.pixelSize) + this.frameSize/2, this.pixelSize, this.pixelSize);
@@ -202,57 +214,42 @@ public class CodePixelWindow extends JFrame {
 				start = System.nanoTime();
 			}
 		}
+		// Tell other threads that the pixels array is now free again
 		isMidUpdate = false;
 	}
 
+	// Convenience for calling from inside contexts where 'this' doesn't point to the right object
 	public void enact (Pixel p) {
 		p.enact (this);
 	}
 	
-	ExecutorService service;
+	// The main entry point for the CodePixelWindow
 	public void updateMain () {
-		service = Executors.newFixedThreadPool(3);
 		while (true) {
-			//try {
-			
-			if (allowsPixelEnactment) {
+			if (allowsPixelEnactment) { // Run a pixel update only if we're allowed to here
 				updatePixels ();
 			} else {
-				System.out.println("Pixel update unavailable.");
+				// System.out.println("Pixel update unavailable.");
 			}
-//			} catch (ConcurrentModificationException | InterruptedException e) {
-//				e.printStackTrace();
-//				//return;
-//			}
 		}
 	}
 	
 	public static void main(String[] args) {
+		// Get setup input
 		JTextField pxSizeField = new JTextField ("3");
 		JTextField frameSizeField = new JTextField ("1000");
-		JTextField lifeLengthField = new JTextField ("40");
-		JTextField ageLimitField = new JTextField ("8");
-		JTextField codeField = new JTextField ("agecol evocol smrtbrd");
-
+		
 		final JComponent[] inputs = new JComponent[] {
 				new JLabel("Frame size"),
 				frameSizeField,
 				new JLabel("Pixel size"),
 				pxSizeField,
-				//new JLabel("Lifetime length"),
-				//lifeLengthField,
-				//new JLabel("Breeding age limit"),
-				//ageLimitField,
-				//new JLabel("Starting pixel code"),
-				//codeField,
-				//refreshInstant
 		};		
 
 		int newPx;
-		int newLife;
-		int newAgeLimit;
 		int newFrameSize;
 
+		// Repeat until user puts in acceptable values
 		while (true) {
 			int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
 			if (result != 0) {
@@ -260,8 +257,6 @@ public class CodePixelWindow extends JFrame {
 			}
 			try {
 				newPx = Integer.parseInt(pxSizeField.getText());
-				//newLife = Integer.parseInt(lifeLengthField.getText());
-				//newAgeLimit = Integer.parseInt(ageLimitField.getText());
 				newFrameSize = Integer.parseInt(frameSizeField.getText());
 				break;
 			} catch (Exception e) {
@@ -269,17 +264,14 @@ public class CodePixelWindow extends JFrame {
 			}
 		}
 
+		// Set up the main window
 		CodePixelWindow c = new CodePixelWindow ("CodePixel");
 		c.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		c.pixelSize = newPx;
-		//c.lifetimeLength = newLife;
-		//c.breedingAgeLimit = newAgeLimit;
 		c.frameSize = newFrameSize;
-		String code = codeField.getText().toString();
-		c.startCode = code;
-		c.shouldRefreshInstantly = true; //refreshInstant.isSelected();
 		c.prepareGUI();
 		c.setVisible (true);
+		// Call into the entry point
 		c.updateMain();
 	}
 

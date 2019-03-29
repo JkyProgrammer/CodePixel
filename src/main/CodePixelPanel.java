@@ -3,15 +3,15 @@ package main;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.JPanel;
 
 public class CodePixelPanel extends JPanel {	
 	private static final long serialVersionUID = -2170386884746336930L;
-	boolean isFirstUpdate = true;
-	Pixel singleToRefresh;
+	
+	boolean isFirstUpdate = true;	// Determines if the whole screen needs a repaint
+	Pixel singleToRefresh;			// The single pixel that needs refreshing
 	
 	CodePixelWindow parent;
 	
@@ -20,40 +20,28 @@ public class CodePixelPanel extends JPanel {
 		parent = cp;
 	}
 	
+	// Paint the component
 	@Override
 	protected void paintComponent (Graphics g) {
 		if (isFirstUpdate) {
+			// Repaint the entire screen
 			g.setColor(Color.white);
 			g.fillRect (0, 0, parent.frameSize, parent.frameSize);
 			isFirstUpdate = false;
 		}
-		if (parent.shouldRefreshInstantly) {
-			paintPixel (g, singleToRefresh);
-			singleToRefresh = null;
-		}
+		// Paint the single pixel that needs refreshing
+		paintPixel (g, singleToRefresh);
+		// Clear singleToRefresh
+		singleToRefresh = null;
 	}
 
+	// Check if a pixel exists at the defined point
 	public boolean pixelExists (int x, int y) {
-//		for (Pixel p : pixels) {
-//			if (p.x == x && p.y == y)
-//				return true;
-//		}
 		if (pixels.containsKey(new Point (x, y))) return true;
 		return false;
 	}
 	
-//	public int indexOf (int x, int y) {
-//		int i = 0;
-//		Pixel[] pixes = pixels.toArray(new Pixel[] {});
-//		for (Pixel p : pixes) {
-//			if (p.x == x && p.y == y)
-//				return i;
-//			i++;
-//		}
-//		pixels.
-//		return -1;
-//	}
-	
+	// Paint a single pixel into the graphics environment
 	public void paintPixel (Graphics g, Pixel p) {
 		if (p == null)
 			return;
