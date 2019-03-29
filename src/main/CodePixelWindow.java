@@ -9,6 +9,8 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.ListIterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -33,6 +35,7 @@ public class CodePixelWindow extends JFrame {
 		Pixel newPixel = new Pixel (Integer.parseInt(optionsPane.lifeLengthField.getText()), optionsPane.codeField.getText(), x, y, Integer.parseInt(optionsPane.ageLimitField.getText()));
 		//newPixel.color = Color.getHSBColor((float)((float)(optionsPane.colourSlider.getValue())/(float)255), 1f, 0.5f);
 		newPixel.tint = (float)((float)(optionsPane.colourSlider.getValue())/(float)255);
+		if (!optionsPane.enableLeapBrdBox.isSelected()) newPixel.allowsLeapBreedGene = false;
 		pixelsToAdd.add(newPixel);
 		//it.add(newPixel);
 		this.cpp.singleToRefresh = newPixel;
@@ -54,7 +57,9 @@ public class CodePixelWindow extends JFrame {
 	boolean shouldRefreshInstantly = true;
 	public String startCode;
 	boolean allowsPixelEnactment = true;
+	boolean isMidUpdate = false;
 	
+	boolean verboseTimerLogging = false;
 	
 	public void prepareGUI () {
 		cpp = new CodePixelPanel (this);
@@ -70,6 +75,7 @@ public class CodePixelWindow extends JFrame {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
+				allowsPixelEnactment = true;
 				if (SwingUtilities.isLeftMouseButton(e)) {
 					addPixel (new Point (e.getX(), e.getY()));
 				} else {
@@ -109,6 +115,7 @@ public class CodePixelWindow extends JFrame {
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
+				allowsPixelEnactment = true;
 				if (SwingUtilities.isLeftMouseButton(e)) {
 					addPixel (new Point (e.getX(), e.getY()));
 				} else {
@@ -146,6 +153,7 @@ public class CodePixelWindow extends JFrame {
 	boolean mouseIsDown = false;
 	public ListIterator<Pixel> it;
 	public void updatePixels () {
+		long start = System.nanoTime();
 		Point[] indices = pixelsToRemove.toArray (new Point[] {});
 		pixelsToRemove.clear();
 		for (Point p : indices) {
@@ -156,6 +164,8 @@ public class CodePixelWindow extends JFrame {
 			}
 		}
 		
+		if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for removal.");
+		start = System.nanoTime();
 		
 		Pixel[] pixes = pixelsToAdd.toArray(new Pixel[] {});
 		pixelsToAdd.clear();
@@ -168,24 +178,61 @@ public class CodePixelWindow extends JFrame {
 					this.cpp.pixels.add(p);
 			}
 		}
+		
+		if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for adding.");
+		start = System.nanoTime();
 
-
+		
+		isMidUpdate = true;
 		it = this.cpp.pixels.listIterator();
 		while (it.hasNext()) {
 			Pixel p = it.next();
 			if (p.remainingLifetime > 0) {
-				p.enact(this, it);
-				this.cpp.singleToRefresh  = p;
-				this.cpp.paintComponent(this.cpp.getGraphics().create());
+				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for setup.");
+				start = System.nanoTime();
+				enact(p);
+				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for enactment.");
+				start = System.nanoTime();
+				cpp.singleToRefresh  = p;
+				cpp.paintComponent(cpp.getGraphics().create());
+				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for painting.");
+				start = System.nanoTime();
 			} else {
+				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for setup.");
+				start = System.nanoTime();
 				it.remove();
 				Graphics g = this.cpp.getGraphics().create();
 				g.setColor(Color.WHITE);
 				g.fillRect((p.x * this.pixelSize) + this.frameSize/2, (p.y * this.pixelSize) + this.frameSize/2, this.pixelSize, this.pixelSize);
+				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for killing.");
+				start = System.nanoTime();
 			}
 		}
+		isMidUpdate = false;
 	}
 
+	public void enact (Pixel p) {
+		p.enact (this, it);
+	}
+	
+	ExecutorService service;
+	public void updateMain () {
+		service = Executors.newFixedThreadPool(3);
+		while (true) {
+			//try {
+			
+			if (allowsPixelEnactment) {
+				updatePixels ();
+			} else {
+				System.out.println("Pixel update unavailable.");
+			}
+//			} catch (ConcurrentModificationException | InterruptedException e) {
+//				e.printStackTrace();
+//				//return;
+//			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		JTextField pxSizeField = new JTextField ("3");
 		JTextField frameSizeField = new JTextField ("1000");
@@ -239,16 +286,7 @@ public class CodePixelWindow extends JFrame {
 		c.shouldRefreshInstantly = true; //refreshInstant.isSelected();
 		c.prepareGUI();
 		c.setVisible (true);
-		while (true) {
-			//try {
-			if (c.allowsPixelEnactment) {
-				c.updatePixels ();
-			}
-//			} catch (ConcurrentModificationException | InterruptedException e) {
-//				e.printStackTrace();
-//				//return;
-//			}
-		}
+		c.updateMain();
 	}
 
 }

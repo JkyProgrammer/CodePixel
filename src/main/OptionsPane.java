@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,7 +27,7 @@ public class OptionsPane extends JFrame {
 	public JTextField codeField;
 	public JSlider colourSlider;
 	private JPanel colourBox = new JPanel ();
-	
+	public JCheckBox enableLeapBrdBox;
 	
 	public OptionsPane (CodePixelWindow cp) {
 		super ("Options for New Pixels");
@@ -34,8 +35,10 @@ public class OptionsPane extends JFrame {
 		lifeLengthField = new JTextField (Integer.toString((cp.lifetimeLength)));
 		ageLimitField = new JTextField (Integer.toString((cp.breedingAgeLimit)));
 		codeField = new JTextField (cp.startCode);
+		enableLeapBrdBox = new JCheckBox ("Enable leap breed mutation");
+		enableLeapBrdBox.setSelected(true);
 		
-		JTextArea infoLabel = new JTextArea ("Left Click or drag on the main window to add new pixels. Right click or drag to kill pixels.");
+		JTextArea infoLabel = new JTextArea ("Left Click or drag on the main window to add new pixels. Right click or drag to kill pixels. All the options below affect the characteristics of newly drawn pixels.");
 		infoLabel.setFont(infoLabel.getFont().deriveFont(Font.BOLD));
 		infoLabel.setLineWrap(true);
 		
@@ -44,16 +47,15 @@ public class OptionsPane extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				cp.allowsPixelEnactment = false;
+				while (cp.isMidUpdate) {System.out.println("Delay due to updating.");};
 				cp.pixelsToRemove.clear();
 				cp.pixelsToAdd.clear();
-				for (Pixel p : cp.cpp.pixels) {
-					if (p != null) {
-						int index = cp.cpp.indexOf(p.x, p.y);
-						if (index > -1)
-							cp.cpp.pixels.get(index).remainingLifetime = 0;
-					}
+				while (cp.cpp.pixels.size() > 0) {
+					cp.cpp.pixels.remove(0);
 				}
 				cp.allowsPixelEnactment = true;
+				cp.cpp.isFirstUpdate = true;
+				cp.cpp.repaint();
 			}
 		});
 		
@@ -69,6 +71,9 @@ public class OptionsPane extends JFrame {
 			}
 		});
 		colourBox.setBackground(Color.getHSBColor((float)((float)(colourSlider.getValue())/(float)255), 1f, 0.5f));
+		
+		
+		
 		final JComponent[] inputs = new JComponent[] {
 				infoLabel,
 		        new JLabel("Lifetime length"),
@@ -79,15 +84,16 @@ public class OptionsPane extends JFrame {
 		        codeField,
 		        colourBox,
 		        colourSlider,
+		        enableLeapBrdBox,
 		        clearButton
 		};
 		
-		this.setLayout(new GridLayout (8, 1));
+		this.setLayout(new GridLayout (11, 1));
 		for (JComponent c : inputs) {
 			this.add(c);
 		}
 		infoLabel.setEditable(false);
-		this.setSize(300, 400);
+		this.setSize(400, 500);
 		this.setResizable(false);
 		this.setLocation(cp.frameSize + 1, 0);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);

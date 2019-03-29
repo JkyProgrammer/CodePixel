@@ -16,6 +16,7 @@ public class Pixel {
 	String code = "";
 	Color color;
 	float tint = 0.0f;
+	boolean allowsLeapBreedGene = true;
 	
 	public String toString () {
 		return "Pixel: " + x + ", " + y + ", " + remainingLifetime + ", " + code;
@@ -31,13 +32,17 @@ public class Pixel {
 		this.y = yy;
 	}
 	
-	private void newPixel (ListIterator<Pixel> li, int targetX, int targetY) {
-		Pixel newPixel = new Pixel (ageStart, code.replaceAll("prsistnt", ""), targetX, targetY, ageLimit);
-		Random r = new Random ();
-		if (r.nextInt (10000) == 0) {
-			newPixel.code = "leapbrd " + newPixel.code;
+	private synchronized static void newPixel (ListIterator<Pixel> li, int targetX, int targetY, Pixel origin) {
+		Pixel newPixel = new Pixel (origin.ageStart, origin.code.replaceAll("prsistnt", ""), targetX, targetY, origin.ageLimit);
+		if (origin.allowsLeapBreedGene) {
+			Random r = new Random ();
+			if (r.nextInt (10000) == 0) {
+				newPixel.code = "leapbrd " + newPixel.code;
+			}
+		} else {
+			newPixel.allowsLeapBreedGene = false;
 		}
-		newPixel.tint = this.tint;
+		newPixel.tint = origin.tint;
 		li.add(newPixel);
 	}
 	 
@@ -54,19 +59,15 @@ public class Pixel {
 				int lim = cp.frameSize/(2 * cp.pixelSize);
 				
 				if (!cp.cpp.pixelExists(newX, newY) && !(newX > lim || newX < -lim) && !(newY > lim || newY < -lim)) {
-					newPixel (li, newX, newY);
+					newPixel (li, newX, newY, this);
 					return;
 				}
 			}
 		} else if (arg.equals("agecol")) {
 			int brightness = 255 - (int)((float)remainingLifetime/(float)ageStart*255.0);
-			//rgbNum = 100; 
+			float col = (float)brightness/255f;
 			
-			float[] hsb = new float[3];
-			Color.RGBtoHSB(brightness, brightness, brightness, hsb);
-			Color c = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
-			//System.out.println(c);
-			color = new Color (c.getRGB());
+			color = Color.getHSBColor(0f, 0f, col);
 		} else if (arg.equals("evocol")) {
 			if (r.nextInt(20) == 4) {
 				int b = r.nextInt(150);
@@ -78,14 +79,13 @@ public class Pixel {
 			}
 			float[] hsb = new float[3];
 			Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
-			Color c = Color.getHSBColor(tint, 1.0f, hsb[2]);
-			color = new Color (c.getRGB());
+			color = Color.getHSBColor(tint, 1f-hsb[2], hsb[2]);;
 		} else if (arg.equals("leapbrd")) {
 			this.code = this.code.replaceAll("leapbrd", "");
 			boolean negativex = r.nextBoolean();
-			int distancex = r.nextInt(100) + 100;
+			int distancex = r.nextInt(100) + 30;
 			boolean negativey = r.nextBoolean();
-			int distancey = r.nextInt(100) + 100;
+			int distancey = r.nextInt(100) + 30;
 			if (negativex) {
 				distancex = -distancex;
 			}
@@ -100,7 +100,7 @@ public class Pixel {
 			targetY = this.y + distancey;
 			int lim = cp.frameSize/(2 * cp.pixelSize);
 			if (!cp.cpp.pixelExists(targetX, targetY) && !(targetX > lim || targetX < -lim) && !(targetY > lim || targetY < -lim)) {
-				newPixel (li, targetX, targetY);
+				newPixel (li, targetX, targetY, this);
 				return;
 			}
 		} else if (arg.equals("homocidal")) {
@@ -111,17 +111,17 @@ public class Pixel {
 			// TODO: New cell code
 		} else if (arg.equals ("msedistcol")) {
 			// TODO: New cell code
+		} else if (arg.equals ("logiclbrd")) {
+			// TODO: New cell code
 		} else if (arg.equals ("prsistnt")) {
 			remainingLifetime++;
-			
 		}
 	}
 	
 	public void enact (CodePixelWindow cp, ListIterator<Pixel> li) {
 		remainingLifetime--;
 		if (remainingLifetime > 0) {
-			ArrayList<String> args = new ArrayList<String> (Arrays.asList(code.split(" ")));
-			for (String arg : args) {
+			for (String arg : code.split(" ")) {
 				evaluate (arg, cp, li);
 			}
 		}
