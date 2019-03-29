@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
@@ -32,7 +33,7 @@ public class Pixel {
 		this.y = yy;
 	}
 	
-	private synchronized static void newPixel (ListIterator<Pixel> li, int targetX, int targetY, Pixel origin) {
+	private synchronized static void newPixel (int targetX, int targetY, Pixel origin, CodePixelWindow cp) {
 		Pixel newPixel = new Pixel (origin.ageStart, origin.code.replaceAll("prsistnt", ""), targetX, targetY, origin.ageLimit);
 		if (origin.allowsLeapBreedGene) {
 			Random r = new Random ();
@@ -43,10 +44,10 @@ public class Pixel {
 			newPixel.allowsLeapBreedGene = false;
 		}
 		newPixel.tint = origin.tint;
-		li.add(newPixel);
+		cp.cpp.pixels.put(new Point (newPixel.x, newPixel.y), newPixel);
 	}
 	 
-	private void evaluate (String arg, CodePixelWindow cp, ListIterator<Pixel> li) {
+	private void evaluate (String arg, CodePixelWindow cp) {
 		Random r = new Random ();
 		if (arg.equals("smrtbrd")) {
 			if ((ageStart - remainingLifetime) <= ageLimit) {
@@ -59,7 +60,7 @@ public class Pixel {
 				int lim = cp.frameSize/(2 * cp.pixelSize);
 				
 				if (!cp.cpp.pixelExists(newX, newY) && !(newX > lim || newX < -lim) && !(newY > lim || newY < -lim)) {
-					newPixel (li, newX, newY, this);
+					newPixel (newX, newY, this, cp);
 					return;
 				}
 			}
@@ -100,7 +101,7 @@ public class Pixel {
 			targetY = this.y + distancey;
 			int lim = cp.frameSize/(2 * cp.pixelSize);
 			if (!cp.cpp.pixelExists(targetX, targetY) && !(targetX > lim || targetX < -lim) && !(targetY > lim || targetY < -lim)) {
-				newPixel (li, targetX, targetY, this);
+				newPixel (targetX, targetY, this, cp);
 				return;
 			}
 		} else if (arg.equals("homocidal")) {
@@ -118,11 +119,11 @@ public class Pixel {
 		}
 	}
 	
-	public void enact (CodePixelWindow cp, ListIterator<Pixel> li) {
+	public void enact (CodePixelWindow cp) {
 		remainingLifetime--;
 		if (remainingLifetime > 0) {
 			for (String arg : code.split(" ")) {
-				evaluate (arg, cp, li);
+				evaluate (arg, cp);
 			}
 		}
 	} 

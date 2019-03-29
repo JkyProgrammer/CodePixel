@@ -2,7 +2,9 @@ package main;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JPanel;
 
@@ -32,23 +34,25 @@ public class CodePixelPanel extends JPanel {
 	}
 
 	public boolean pixelExists (int x, int y) {
-		for (Pixel p : pixels) {
-			if (p.x == x && p.y == y)
-				return true;
-		}
+//		for (Pixel p : pixels) {
+//			if (p.x == x && p.y == y)
+//				return true;
+//		}
+		if (pixels.containsKey(new Point (x, y))) return true;
 		return false;
 	}
 	
-	public int indexOf (int x, int y) {
-		int i = 0;
-		Pixel[] pixes = pixels.toArray(new Pixel[] {});
-		for (Pixel p : pixes) {
-			if (p.x == x && p.y == y)
-				return i;
-			i++;
-		}
-		return -1;
-	}
+//	public int indexOf (int x, int y) {
+//		int i = 0;
+//		Pixel[] pixes = pixels.toArray(new Pixel[] {});
+//		for (Pixel p : pixes) {
+//			if (p.x == x && p.y == y)
+//				return i;
+//			i++;
+//		}
+//		pixels.
+//		return -1;
+//	}
 	
 	public void paintPixel (Graphics g, Pixel p) {
 		if (p == null)
@@ -57,5 +61,5 @@ public class CodePixelPanel extends JPanel {
 		g.fillRect((p.x * parent.pixelSize) + parent.frameSize/2, (p.y * parent.pixelSize) + parent.frameSize/2, parent.pixelSize, parent.pixelSize);
 	}
 	
-	public ArrayList<Pixel> pixels = new ArrayList<Pixel> ();
+	public HashMap<Point, Pixel> pixels = new HashMap<Point, Pixel> ();
 }

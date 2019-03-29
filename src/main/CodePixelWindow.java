@@ -157,11 +157,7 @@ public class CodePixelWindow extends JFrame {
 		Point[] indices = pixelsToRemove.toArray (new Point[] {});
 		pixelsToRemove.clear();
 		for (Point p : indices) {
-			if (p != null) {
-				int index = cpp.indexOf(p.x, p.y);
-				if (index > -1)
-					this.cpp.pixels.get(index).remainingLifetime = 0;
-			}
+			cpp.pixels.get(p).remainingLifetime = 0;
 		}
 		
 		if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for removal.");
@@ -171,11 +167,7 @@ public class CodePixelWindow extends JFrame {
 		pixelsToAdd.clear();
 		for (Pixel p : pixes) {
 			if (p != null) {
-				int i = this.cpp.indexOf(p.x, p.y);
-				if (i > -1)
-					this.cpp.pixels.set(i, p);
-				else 
-					this.cpp.pixels.add(p);
+				cpp.pixels.put(new Point (p.x, p.y), p);
 			}
 		}
 		
@@ -184,9 +176,9 @@ public class CodePixelWindow extends JFrame {
 
 		
 		isMidUpdate = true;
-		it = this.cpp.pixels.listIterator();
-		while (it.hasNext()) {
-			Pixel p = it.next();
+		//it = this.cpp.pixels.listIterator();
+		Pixel[] iteratingPixels = cpp.pixels.values().toArray(new Pixel[0]);
+		for (Pixel p : iteratingPixels) {
 			if (p.remainingLifetime > 0) {
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for setup.");
 				start = System.nanoTime();
@@ -200,7 +192,8 @@ public class CodePixelWindow extends JFrame {
 			} else {
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for setup.");
 				start = System.nanoTime();
-				it.remove();
+				//it.remove();
+				cpp.pixels.remove(new Point (p.x, p.y));
 				Graphics g = this.cpp.getGraphics().create();
 				g.setColor(Color.WHITE);
 				g.fillRect((p.x * this.pixelSize) + this.frameSize/2, (p.y * this.pixelSize) + this.frameSize/2, this.pixelSize, this.pixelSize);
@@ -212,7 +205,7 @@ public class CodePixelWindow extends JFrame {
 	}
 
 	public void enact (Pixel p) {
-		p.enact (this, it);
+		p.enact (this);
 	}
 	
 	ExecutorService service;
