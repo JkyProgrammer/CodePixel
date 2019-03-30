@@ -89,27 +89,64 @@ public class Pixel {
 			color = Color.getHSBColor(tint, 1f-hsb[2], hsb[2]);;
 		} else if (arg.equals("leapbrd")) { // Leap Breed: the pixel will throw out a 'spore' and start an entirely new colony away from itself. The colony base has the same genetic code. The gene can only be used once per pixel. 
 			this.code = this.code.replaceAll("leapbrd", "");
-			boolean negativex = r.nextBoolean();
-			int distancex = r.nextInt(100) + 30;
-			boolean negativey = r.nextBoolean();
-			int distancey = r.nextInt(100) + 30;
-			if (negativex) {
-				distancex = -distancex;
-			}
-			if (negativey) {
-				distancey = -distancey;
+			boolean negativeDist = r.nextBoolean();
+			int distance = r.nextInt(100) + 30;
+			boolean horizontal = r.nextBoolean();
+			if (negativeDist) {
+				distance = -distance;
 			}
 			
-			int targetX;
-			int targetY;
+			int targetX = this.x;
+			int targetY = this.y;
 			
-			targetX = this.x + distancex;
-			targetY = this.y + distancey;
+			if (horizontal) targetX = this.x + distance;
+			else targetY = this.y + distance;
+			
+			if (cp.cpp.pixelExists(targetX, targetY)) return;
+			
 			int lim = cp.frameSize/(2 * cp.pixelSize);
-			if (!cp.cpp.pixelExists(targetX, targetY) && !(targetX > lim || targetX < -lim) && !(targetY > lim || targetY < -lim)) {
-				newPixel (targetX, targetY, this, cp);
-				return;
+			
+			Pixel inheriter = new Pixel (2, this.code.replaceAll("prsistnt", ""), targetX, targetY, 0);
+			inheriter.tint = this.tint;
+			inheriter.allowsLeapBreedGene = false;
+			
+			if (horizontal) {
+				
+				int d = 1;
+				if (negativeDist) d = -1;
+				
+				for (int i = this.x; i != targetX; i+=d) {
+					if (!cp.cpp.pixelExists(i, targetY)) {
+						if (!(i > lim || i < -lim) && !(targetY > lim || targetY < -lim)) {
+							newPixel (i, targetY, inheriter, cp);
+						} else {
+							break;
+						}
+					}
+				}
+			} else {
+				targetY = this.y + distance;
+				int d = 1;
+				if (negativeDist) d = -1;
+				
+				for (int i = this.y; i != targetY; i+=d) {
+					if (!cp.cpp.pixelExists(targetX, i)) {
+						if (!(targetX > lim || targetX < -lim) && !(i > lim || i < -lim)) {
+							newPixel (targetX, i, inheriter, cp);
+						} else {
+							break;
+						}
+					}
+				}
 			}
+			
+			if (!cp.cpp.pixelExists(targetX, targetY)) {
+				if (!(targetX > lim || targetX < -lim) && !(targetY > lim || targetY < -lim)) {
+					newPixel (targetX, targetY, this, cp);
+				}
+			}
+			
+			
 		} else if (arg.equals("homocidal")) {
 			// TODO: New cell code
 		} else if (arg.equals ("explsvkill")) {
