@@ -6,6 +6,8 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -51,14 +53,14 @@ public class CodePixelWindow extends JFrame {
 	int frameSize = 1000;
 	int pixelSize = 3;
 	
-	static int lifetimeLength = 40; 					// The default lifetime length for the options pane
-	static int breedingAgeLimit = 8;					// The default breeding age limit for the options pane
+	static int lifetimeLength = 100; 					// The default lifetime length for the options pane
+	static int breedingAgeLimit = 80;					// The default breeding age limit for the options pane
 	static String startCode = "agecol evocol smrtbrd";	// The default starting code for the options pane
 	static boolean verboseTimerLogging = false;			// Determines whether or not to display operation timing data on the console
 
 	boolean allowsPixelEnactment = true;				// Defines whether or not the pixelUpdate method should be called
 	boolean isMidUpdate = false;						// Defines whether or not the pixelUpdate method is currently enacting/drawing pixels
-	
+	int killBrushRadius = 2;							// Defines the radius around the mouse that is removed when using the kill brush
 	
 	// Called to set up the GUI
 	public void prepareGUI () {
@@ -68,7 +70,8 @@ public class CodePixelWindow extends JFrame {
 		// Prepare the frame
 		setSize (frameSize, frameSize);
 		setResizable (false);
-		// Add a sensor to detect clicking events
+		
+		// Add a listener to detect clicking events
 		this.addMouseListener(new MouseListener () {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -124,12 +127,12 @@ public class CodePixelWindow extends JFrame {
 					int x = (e.getX()-frameSize/2)/pixelSize;
 					int y = (e.getY()-frameSize/2)/pixelSize;
 					y -= 10;
-					int topLeftX = x - 2;
-					int topLeftY = y - 2;
+					int topLeftX = x - killBrushRadius;
+					int topLeftY = y - killBrushRadius;
 
 					// Iterate over the pixels and queue them to be removed
-					for (int b = topLeftY; b <= topLeftY + 4; b++) {
-						for (int a = topLeftX; a <= topLeftX + 4; a++) {
+					for (int b = topLeftY; b <= topLeftY + (2*killBrushRadius); b++) {
+						for (int a = topLeftX; a <= topLeftX + (2*killBrushRadius); a++) {
 							Point o = new Point (a, b);
 							pixelsToRemove.add (o);
 							pixelsToAdd.remove(o);
@@ -139,12 +142,21 @@ public class CodePixelWindow extends JFrame {
 					// Draw over the pixels being removed
 					Graphics g = cpp.getGraphics().create();
 					g.setColor(Color.WHITE);
-					g.fillRect(((x-2) * pixelSize) + frameSize/2, ((y-2) * pixelSize) + frameSize/2, pixelSize * 5, pixelSize * 5);
+					g.fillRect(((x-killBrushRadius) * pixelSize) + frameSize/2, ((y-killBrushRadius) * pixelSize) + frameSize/2, pixelSize * ((2*killBrushRadius) + 1), pixelSize * ((2*killBrushRadius) + 1));
 				}
 			}
 
 			@Override
 			public void mouseMoved(MouseEvent e) {}
+		});
+		
+		// Add a listener to detect mouse scroll events
+		this.addMouseWheelListener(new MouseWheelListener () {
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				killBrushRadius += e.getWheelRotation();
+				if (killBrushRadius < 2) killBrushRadius = 2;
+			}
 		});
 
 		// Set up and show the options pane
