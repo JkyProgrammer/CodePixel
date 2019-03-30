@@ -1,18 +1,19 @@
 package main;
 
 import java.awt.GridLayout;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 
 public class TimePane extends JFrame {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JButton playButton;
 	private JButton pauseButton;
 	private JButton stepButton;
