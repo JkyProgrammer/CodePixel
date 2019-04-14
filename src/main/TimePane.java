@@ -7,17 +7,18 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
 public class TimePane extends JFrame {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private JButton playButton;
 	private JButton pauseButton;
 	private JButton stepButton;
+	private JButton exportImage;
 	
+	public JLabel pixelCounter;
+	public JLabel frameCounter;
 	
 	public TimePane (CodePixelWindow cp) {
 		super ("Time Control Pane");
@@ -29,6 +30,7 @@ public class TimePane extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				cp.allowsPixelEnactment = true;
+				exportImage.setEnabled(false);
 			}
 		});
 		
@@ -40,6 +42,7 @@ public class TimePane extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				cp.allowsPixelEnactment = false;
+				exportImage.setEnabled(true);
 			}
 		});
 		
@@ -53,15 +56,32 @@ public class TimePane extends JFrame {
 			}
 		});
 		
-		this.getContentPane().setLayout(new GridLayout (3,1));
+		exportImage = new JButton ("Export Image");
+		exportImage.setIcon(new ImageIcon (getClass().getResource("/resources/camera.png")));
+		exportImage.setHorizontalAlignment(SwingConstants.LEFT);
+		exportImage.addActionListener(new ActionListener () {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cp.writeFinalImage();
+			}
+		});
+		exportImage.setEnabled(false);
+
+		pixelCounter = new JLabel ("Pixels: 0");
+		
+		frameCounter = new JLabel ("Frame: 0");
+		
+		this.getContentPane().setLayout(new GridLayout (6,1));
 		
 		this.add(playButton);
 		this.add(pauseButton);
 		this.add(stepButton);
-		
+		this.add(exportImage);
+		this.add(pixelCounter);
+		this.add(frameCounter);
 		
 		this.setResizable(false);
-		this.setSize(400, 200);
+		this.setSize(400, 350);
 		this.setLocation(cp.frameSize + 1, cp.optionsPane.getHeight()+24);
 		this.setVisible(true);
 	}

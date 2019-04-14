@@ -2,13 +2,19 @@ package main;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -52,6 +58,8 @@ public class CodePixelWindow extends JFrame {
 	CodePixelPanel cpp;
 	int frameSize = 1000;
 	int pixelSize = 3;
+	boolean isWritingToImageFile = false;
+	String imageFilePath = "";
 	
 	static int lifetimeLength = 100; 					// The default lifetime length for the options pane
 	static int breedingAgeLimit = 80;					// The default breeding age limit for the options pane
@@ -61,6 +69,8 @@ public class CodePixelWindow extends JFrame {
 	boolean allowsPixelEnactment = true;				// Defines whether or not the pixelUpdate method should be called
 	boolean isMidUpdate = false;						// Defines whether or not the pixelUpdate method is currently enacting/drawing pixels
 	int killBrushRadius = 2;							// Defines the radius around the mouse that is removed when using the kill brush
+	int frameNumber = 0;
+	BufferedImage currentlyWritingImage = null;
 	
 	// Called to set up the GUI
 	public void prepareGUI () {
@@ -164,6 +174,8 @@ public class CodePixelWindow extends JFrame {
 		optionsPane.setVisible (true);
 		
 		timePane = new TimePane (this);
+		
+		currentlyWritingImage = new BufferedImage (this.frameSize, this.frameSize, BufferedImage.TYPE_INT_ARGB);
 	}
 
 	OptionsPane optionsPane;
@@ -198,6 +210,11 @@ public class CodePixelWindow extends JFrame {
 		// Tell other threads that the pixels array is now in use
 		isMidUpdate = true;
 		// Cache the current list of pixels
+		Graphics g = cpp.getGraphics().create();
+		Graphics2D imgG = currentlyWritingImage.createGraphics();
+		imgG.setColor(Color.white);
+		imgG.fillRect (0, 0, this.frameSize, this.frameSize);
+		
 		Pixel[] iteratingPixels = cpp.pixels.values().toArray(new Pixel[0]);
 		// Iterate over the cached list of pixels
 		for (Pixel p : iteratingPixels) {
@@ -210,7 +227,9 @@ public class CodePixelWindow extends JFrame {
 				start = System.nanoTime();
 				// Paint the pixel
 				cpp.singleToRefresh  = p;
-				cpp.paintComponent(cpp.getGraphics().create());
+				cpp.paintComponent(g);
+				imgG.setColor(p.color);
+				imgG.fillRect((p.x * this.pixelSize) + this.frameSize/2, (p.y * this.pixelSize) + this.frameSize/2, this.pixelSize, this.pixelSize);
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for painting.");
 				start = System.nanoTime();
 			} else {
@@ -219,20 +238,50 @@ public class CodePixelWindow extends JFrame {
 				// Remove the dead pixel from the pixels array
 				cpp.pixels.remove(new Point (p.x, p.y));
 				// Paint over it
-				Graphics g = this.cpp.getGraphics().create();
+				
 				g.setColor(Color.WHITE);
 				g.fillRect((p.x * this.pixelSize) + this.frameSize/2, (p.y * this.pixelSize) + this.frameSize/2, this.pixelSize, this.pixelSize);
+				
+				imgG.setColor(Color.WHITE);
+				imgG.fillRect((p.x * this.pixelSize) + this.frameSize/2, (p.y * this.pixelSize) + this.frameSize/2, this.pixelSize, this.pixelSize);
 				if (verboseTimerLogging) System.out.println((System.nanoTime() - start) + " millis for killing.");
 				start = System.nanoTime();
 			}
 		}
 		// Tell other threads that the pixels array is now free again
+		if (!cpp.pixels.isEmpty()) {
+			if (isWritingToImageFile) {
+				writeFinalImage();
+			}
+			frameNumber++;
+		}
+		timePane.frameCounter.setText("Frame: " + frameNumber);
+		timePane.pixelCounter.setText("Pixels: " + cpp.pixels.size());
+		
 		isMidUpdate = false;
 	}
 
 	// Convenience for calling from inside contexts where 'this' doesn't point to the right object
 	public void enact (Pixel p) {
 		p.enact (this);
+	}
+	
+	public void writeFinalImage () {
+		try {
+		    File outputfile = new File(imageFilePath + "-" + frameNumber + ".png");
+		    
+		    
+		    File directory = new File(outputfile.getAbsolutePath().substring(0, outputfile.getAbsolutePath().lastIndexOf("/")));
+		    if (!directory.exists()){
+		        directory.mkdirs();
+		    }
+		    
+		    ImageIO.write(currentlyWritingImage, "png", outputfile);
+		} catch (Exception e) {
+		    JOptionPane.showMessageDialog(this, e.getMessage() + ". You must resolve this before the program can continue.", "File Write Error", JOptionPane.ERROR_MESSAGE);
+		    System.exit(1);
+		}
+		currentlyWritingImage = new BufferedImage (this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_ARGB);
 	}
 	
 	// The main entry point for the CodePixelWindow
@@ -251,12 +300,17 @@ public class CodePixelWindow extends JFrame {
 		// Get setup input
 		JTextField pxSizeField = new JTextField ("3");
 		JTextField frameSizeField = new JTextField ("1000");
+		JCheckBox fileWrite = new JCheckBox ("Write each frame to image file", false);
+		JTextField fileWritePath = new JTextField (System.getProperty("user.home") + "/Documents/CodePixel/Frame");
 		
 		final JComponent[] inputs = new JComponent[] {
 				new JLabel("Frame size"),
 				frameSizeField,
 				new JLabel("Pixel size"),
 				pxSizeField,
+				fileWrite,
+				new JLabel ("Image file path prefix"),
+				fileWritePath
 		};		
 
 		int newPx;
@@ -271,7 +325,8 @@ public class CodePixelWindow extends JFrame {
 			try {
 				newPx = Integer.parseInt(pxSizeField.getText());
 				newFrameSize = Integer.parseInt(frameSizeField.getText());
-				break;
+				if ((fileWrite.isSelected() && !fileWritePath.getText().equals("")) || !fileWrite.isSelected())
+					break;
 			} catch (Exception e) {
 
 			}
@@ -282,6 +337,8 @@ public class CodePixelWindow extends JFrame {
 		c.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		c.pixelSize = newPx;
 		c.frameSize = newFrameSize;
+		c.imageFilePath = fileWritePath.getText();
+		c.isWritingToImageFile = fileWrite.isSelected();
 		c.prepareGUI();
 		c.setVisible (true);
 		// Call into the entry point
