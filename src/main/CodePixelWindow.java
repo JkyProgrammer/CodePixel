@@ -3,6 +3,7 @@ package main;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -33,10 +34,8 @@ public class CodePixelWindow extends JFrame {
 	static int lifetimeLength = 100; 					// The default lifetime length for the options pane
 	static int breedingAgeLimit = 80;					// The default breeding age limit for the options pane
 	static String startCode = "agecol evocol smrtbrd";	// The default starting code for the options pane
-	static boolean verboseTimerLogging = false;			// Determines whether or not to display operation timing data on the console
 
 	boolean allowsPixelEnactment = true;				// Defines whether or not the pixelUpdate method should be called
-	boolean isMidUpdate = false;						// Defines whether or not the pixelUpdate method is currently enacting/drawing pixels
 	int killBrushRadius = 2;							// Defines the radius around the mouse that is removed when using the kill brush
 	int frameNumber = 0;
 	BufferedImage currentlyWritingImage = null;
@@ -47,11 +46,14 @@ public class CodePixelWindow extends JFrame {
 	// Add a new pixel at a point
 	public void addDefaultPixel (Point p) {
 		if (pixelExists (p.x, p.y)) return;
+		Pixel pix = new Pixel (100, "agecol smrtbrd", p.x, p.y, 80);
 		synchronized (pixels) {
-			pixels.put (p, new Pixel (100, "smrtbrd", p.x, p.y, 80));
+			pixels.put (p, pix);
 		}
-		pixelQueue.add(p);
-		cpp.paintPixel (p);
+		synchronized (pixelQueue) {
+			pixelQueue.add(p);
+		}
+		cpp.paintPixel (pix);
 	}
 	
 	// Add a new pixel at a point
@@ -61,14 +63,24 @@ public class CodePixelWindow extends JFrame {
 		synchronized (pixels) {
 			pixels.put (p, pix);
 		}
-		pixelQueue.add(p);
-		cpp.paintPixel (p);
+		synchronized (pixelQueue) {
+			pixelQueue.add(p);
+		}
+		cpp.paintPixel (pix);
 	}
 	
 	// Check if a pixel exists at the defined point
 	public boolean pixelExists (int x, int y) {
 		if (pixels.containsKey(new Point (x, y))) return true;
 		return false;
+	}
+	
+	// Kill a specific pixel
+	public void killPixel (Point p) {
+		synchronized (pixels) {
+			pixels.remove(p);
+			cpp.clearPixel(p);
+		}
 	}
 	
 	// Called to set up the GUI
@@ -78,9 +90,8 @@ public class CodePixelWindow extends JFrame {
 		this.add(cpp);
 		// Prepare the frame
 		setSize (frameSize, frameSize);
-		setResizable (false);
+		setResizable (true);
 
-		addDefaultPixel (new Point (0,0));
 		// Set up and show the options pane
 		//optionsPane = new OptionsPane (this);
 		//optionsPane.setVisible (true);
@@ -88,6 +99,8 @@ public class CodePixelWindow extends JFrame {
 		//timePane = new TimePane (this);
 		
 		//currentlyWritingImage = new BufferedImage (this.frameSize, this.frameSize, BufferedImage.TYPE_INT_ARGB);
+		setVisible (true);
+		addDefaultPixel (new Point (0,0));
 	}
 
 	OptionsPane optionsPane;
@@ -117,17 +130,25 @@ public class CodePixelWindow extends JFrame {
 			if (allowsPixelEnactment) { // Run a pixel update only if we're allowed to here
 				Pixel p;
 				synchronized (pixelQueue) {
-					p = pixels.get(pixelQueue.poll());
+					synchronized (pixels) {
+						p = pixels.get(pixelQueue.poll());
+					}
 				}
-				p.enact(this);
-				synchronized (pixelQueue) {
-					pixelQueue.add(new Point (p.x, p.y));
+				if (p == null) continue;
+				if (p.enact(this)) {
+					synchronized (pixelQueue) {
+						pixelQueue.add(new Point (p.x, p.y));
+					}
+				} else {
+					killPixel (new Point (p.x, p.y));
 				}
 			} else {
 				System.out.println("Waiting...");
 			}
 		}
 	}
+	
+	
 	
 	public static void main(String[] args) {
 		// Get setup input
@@ -174,8 +195,23 @@ public class CodePixelWindow extends JFrame {
 		c.isWritingToImageFile = fileWrite.isSelected();
 		c.prepareGUI();
 		c.setVisible (true);
-		// Call into the entry point
-		c.updateMain();
+		
+		// Call into the entry point on every thread
+		ArrayList<Thread> ts = new ArrayList<Thread> ();
+		for (int i = 0; i < 4; i++) {
+			Thread t = new Thread () {
+				public void run () {
+					c.updateMain();
+				}
+			};
+			ts.add(t);
+			t.start();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }

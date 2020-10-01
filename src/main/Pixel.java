@@ -47,7 +47,14 @@ public class Pixel {
 		// Pass on the tint
 		newPixel.tint = origin.tint;
 		// Add the pixel to the hashmap
-		cp.cpp.pixels.put(new Point (newPixel.x, newPixel.y), newPixel);
+		cp.addPixel(newPixel);
+	}
+	
+	public Color agecol() {
+		int brightness = 255 - (int)((float)remainingLifetime/(float)ageStart*255.0);
+		float col = (float)brightness/255f;
+		
+		return Color.getHSBColor(0f, 0f, col);
 	}
 	
 	// Evaluate a single gene for this pixel
@@ -64,16 +71,13 @@ public class Pixel {
 				}
 				int lim = cp.frameSize/(2 * cp.pixelSize);
 				
-				if (!cp.cpp.pixelExists(newX, newY) && !(newX > lim || newX < -lim) && !(newY > lim || newY < -lim)) {
+				if (!cp.pixelExists(newX, newY) && !(newX > lim || newX < -lim) && !(newY > lim || newY < -lim)) {
 					newPixel (newX, newY, this, cp);
 					return;
 				}
 			}
 		} else if (arg.equals("agecol")) { // Age Colour: the pixel's colour is based on a greyscale between black (young) out to white (old).
-			int brightness = 255 - (int)((float)remainingLifetime/(float)ageStart*255.0);
-			float col = (float)brightness/255f;
-			
-			color = Color.getHSBColor(0f, 0f, col);
+			color = agecol ();
 		} else if (arg.equals("evocol")) { /* Evolutionary Colour: the pixel's colour is tinted with a colour. That colour can mutate and change 
 		over time, and the tint is passed down to child pixels. */
 			if (r.nextInt(20) == 4) {
@@ -102,7 +106,7 @@ public class Pixel {
 			if (horizontal) targetX = this.x + distance;
 			else targetY = this.y + distance;
 			
-			if (cp.cpp.pixelExists(targetX, targetY)) return;
+			if (cp.pixelExists(targetX, targetY)) return;
 			
 			int lim = cp.frameSize/(2 * cp.pixelSize);
 			
@@ -116,7 +120,7 @@ public class Pixel {
 				if (negativeDist) d = -1;
 				
 				for (int i = this.x; i != targetX; i+=d) {
-					if (!cp.cpp.pixelExists(i, targetY)) {
+					if (!cp.pixelExists(i, targetY)) {
 						if (!(i > lim || i < -lim) && !(targetY > lim || targetY < -lim)) {
 							newPixel (i, targetY, inheriter, cp);
 						} else {
@@ -130,7 +134,7 @@ public class Pixel {
 				if (negativeDist) d = -1;
 				
 				for (int i = this.y; i != targetY; i+=d) {
-					if (!cp.cpp.pixelExists(targetX, i)) {
+					if (!cp.pixelExists(targetX, i)) {
 						if (!(targetX > lim || targetX < -lim) && !(i > lim || i < -lim)) {
 							newPixel (targetX, i, inheriter, cp);
 						} else {
@@ -140,7 +144,7 @@ public class Pixel {
 				}
 			}
 			
-			if (!cp.cpp.pixelExists(targetX, targetY)) {
+			if (!cp.pixelExists(targetX, targetY)) {
 				if (!(targetX > lim || targetX < -lim) && !(targetY > lim || targetY < -lim)) {
 					newPixel (targetX, targetY, this, cp);
 				}
@@ -159,16 +163,20 @@ public class Pixel {
 			// TODO: New cell code
 		} else if (arg.equals ("prsistnt")) {
 			remainingLifetime++;
+		} else {
+			System.out.println ("Unrecognised instruction " + arg);
 		}
 	}
 	
 	// Execute a full cycle of the pixel's life
-	public void enact (CodePixelWindow cp) {
+	public boolean enact (CodePixelWindow cp) {
 		remainingLifetime--;
 		if (remainingLifetime > 0) {
 			for (String arg : code.split(" ")) {
-				evaluate (arg, cp);
+				if (!arg.isEmpty()) evaluate (arg, cp);
 			}
+			return true;
 		}
+		return false;
 	} 
 }
