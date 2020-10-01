@@ -139,6 +139,7 @@ public class CodePixelWindow extends JFrame {
 					synchronized (pixelQueue) {
 						pixelQueue.add(new Point (p.x, p.y));
 					}
+					cpp.paintPixel(p);
 				} else {
 					killPixel (new Point (p.x, p.y));
 				}

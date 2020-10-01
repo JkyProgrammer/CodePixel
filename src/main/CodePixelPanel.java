@@ -50,7 +50,7 @@ public class CodePixelPanel extends JPanel {
 	// Paint a single pixel into the graphics environment
 	public void paintPixel (Pixel pixel) {
 		Graphics g = getGraphics().create();
-		g.setColor(pixel.color); // FIXME: This is not working as expected
+		g.setColor(pixel.color);
 		g.fillRect((pixel.x * parent.pixelSize) + parent.getWidth()/2, (pixel.y * parent.pixelSize) + parent.getHeight()/2, parent.pixelSize, parent.pixelSize);
 	}
 }
