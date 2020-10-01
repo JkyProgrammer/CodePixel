@@ -1,6 +1,6 @@
 # CodePixel
 
-CodePixel is a Java project aiming to produce simple and rather nice looking patterns based on random and logical growth, evolution, and movement rules.
+CodePixel is a Java project aiming to produce simple and rather nice looking patterns based on random and logical growth, evolution, and movement rules for 'pixels'.
 
 ## 1.0.0 and before
 In the old version (release 1.0.0) the rules were limited to:
