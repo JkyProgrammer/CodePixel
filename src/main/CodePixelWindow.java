@@ -77,10 +77,15 @@ public class CodePixelWindow extends JFrame {
 	
 	// Kill a specific pixel
 	public void killPixel (Point p) {
+//		long startp = System.nanoTime();
 		synchronized (pixels) {
 			pixels.remove(p);
-			cpp.clearPixel(p);
 		}
+//		pMan.enter("removep", System.nanoTime()-startp);
+		
+//		long startc = System.nanoTime();
+		cpp.clearPixel(p);
+//		pMan.enter("clearp", System.nanoTime()-startc);
 	}
 	
 	// Called to set up the GUI
@@ -90,7 +95,7 @@ public class CodePixelWindow extends JFrame {
 		this.add(cpp);
 		// Prepare the frame
 		setSize (frameSize, frameSize);
-		setResizable (true);
+		setResizable (false);
 
 		// Set up and show the options pane
 		//optionsPane = new OptionsPane (this);
@@ -105,6 +110,7 @@ public class CodePixelWindow extends JFrame {
 
 	OptionsPane optionsPane;
 	TimePane timePane;
+	PerformanceManager pMan = new PerformanceManager();
 	
 	public void writeFinalImage () {
 		try {
@@ -135,10 +141,16 @@ public class CodePixelWindow extends JFrame {
 					}
 				}
 				if (p == null) continue;
-				if (p.enact(this)) {
+				
+//				long start = System.nanoTime();
+				boolean res = p.enact(this);
+//				pMan.enter("enact", System.nanoTime()-start);
+				
+				if (res) {
 					synchronized (pixelQueue) {
 						pixelQueue.add(new Point (p.x, p.y));
 					}
+					
 					cpp.paintPixel(p);
 				} else {
 					killPixel (new Point (p.x, p.y));
@@ -199,7 +211,7 @@ public class CodePixelWindow extends JFrame {
 		
 		// Call into the entry point on every thread
 		ArrayList<Thread> ts = new ArrayList<Thread> ();
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 2; i++) {
 			Thread t = new Thread () {
 				public void run () {
 					c.updateMain();
@@ -213,6 +225,16 @@ public class CodePixelWindow extends JFrame {
 				e.printStackTrace();
 			}
 		}
+		
+//		try {
+//			Thread.sleep(20000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		System.out.println ("Average time for enacting: " + c.pMan.averageForCode("enact"));
+//		System.out.println ("Average time for removing: " + c.pMan.averageForCode("removep"));
+//		System.out.println ("Average time for clearing: " + c.pMan.averageForCode("clearp"));
+//		System.exit(0);
 	}
 
 }
